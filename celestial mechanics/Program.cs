@@ -18,15 +18,16 @@ namespace celestial_mechanics
         private RenderWindow window;
         private uint Width;
         private uint Height;
-        private Vector2f CameraPos;
+        private Vector3f CameraPos;
         private float scale;
         private Vector2f MousePresPos;
         private Vector2f MousePos;
         private bool drawGhost;
         private float GhostRadius;
         private CircleShape GhostPlanet;
+        private CircleShape Planet;
         private bool CameraPosChange;
-
+        List<Planet> PlanetList;
         public World(VideoMode mode, string title) : base(mode, title, Styles.Close)
         {
             window = this;
@@ -34,6 +35,10 @@ namespace celestial_mechanics
             MousePresPos = new Vector2f();
             MousePos = new Vector2f();
             GhostPlanet = new CircleShape();
+            Planet = new CircleShape();
+            CameraPos = new Vector3f(0,0,-1);
+            PlanetList = new List<Planet>();
+            PlanetList.Add(new Planet());
             Render();
         }
 
@@ -54,10 +59,24 @@ namespace celestial_mechanics
                 {
                     window.Draw(GhostPlanet);
                 }
+                DrawPlanets();
                 window.Display();
             }
         }
-
+        void DrawPlanets()
+        {
+            for (int i = 0; i < PlanetList.Count; i++)
+            {
+                Planet planet = PlanetList[i];
+                Planet.Position = Norm(CameraPos, planet.posGlobal);
+                Planet.Radius = planet.radius / Math.Abs(CameraPos.Z);
+                window.Draw(Planet);
+            }
+        }
+        Vector2f Norm(Vector3f cam, Vector2f vector2)
+        {
+        
+        }
         private void Window_MouseMoved(object? sender, MouseMoveEventArgs e)
         {
             MousePos.X = e.X;
@@ -65,7 +84,6 @@ namespace celestial_mechanics
             Vector2f vector = MousePos - MousePresPos;
             if (CameraPosChange)
             {
-                CameraPos += new Vector2f(vector.X * 0.01f, vector.Y * 0.01f);
                 Console.WriteLine($"{CameraPos.X} {CameraPos.Y}");
             }
             if (drawGhost)
@@ -355,9 +373,9 @@ namespace celestial_mechanics
 
     internal class Planet
     {
-        private double radius;
+        public float radius=1;
         private double mass;
         private double density;
-        private Vector2f pos;
+        public Vector2f posGlobal = new Vector2f();
     }
 }
