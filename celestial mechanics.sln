@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "celestial mechanics", "celestial mechanics\celestial mechanics.csproj", "{A6500127-3DD1-4F7C-BD6C-94A628E80C9F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A6500127-3DD1-4F7C-BD6C-94A628E80C9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6500127-3DD1-4F7C-BD6C-94A628E80C9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6500127-3DD1-4F7C-BD6C-94A628E80C9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6500127-3DD1-4F7C-BD6C-94A628E80C9F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {246202FD-9446-4AD0-9F4C-3B9E087F08EF}
+	EndGlobalSection
+EndGlobal
