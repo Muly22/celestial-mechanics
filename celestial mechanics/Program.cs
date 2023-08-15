@@ -1,7 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System.Runtime.InteropServices.JavaScript;
+using System.Numerics;
 
 namespace celestial_mechanics
 {
@@ -27,7 +27,7 @@ namespace celestial_mechanics
         private CircleShape GhostPlanet;
         private CircleShape Planet;
         private bool CameraPosChange;
-        List<Planet> PlanetList;
+        private List<Planet> PlanetList;
         public World(VideoMode mode, string title) : base(mode, title, Styles.Close)
         {
             window = this;
@@ -36,9 +36,8 @@ namespace celestial_mechanics
             MousePos = new Vector2f();
             GhostPlanet = new CircleShape();
             Planet = new CircleShape();
-            CameraPos = new Vector3f(0,0,-1);
+            CameraPos = new Vector3f(0, 0, -1f);
             PlanetList = new List<Planet>();
-            PlanetList.Add(new Planet());
             Render();
         }
 
@@ -55,27 +54,27 @@ namespace celestial_mechanics
             {
                 window.DispatchEvents();
                 window.Clear();
+                DrawPlanets();
                 if (drawGhost)
                 {
                     window.Draw(GhostPlanet);
                 }
-                DrawPlanets();
                 window.Display();
             }
         }
-        void DrawPlanets()
+
+        private void DrawPlanets()
         {
             for (int i = 0; i < PlanetList.Count; i++)
             {
                 Planet planet = PlanetList[i];
-                Planet.Position = Norm(CameraPos, planet.posGlobal);
-                Planet.Radius = planet.radius / Math.Abs(CameraPos.Z);
+                Vector3f vector = new Vector3f(planet.posGlobal.X, planet.posGlobal.Y, 0) - CameraPos;
+                float radius = planet.radius / Math.Abs(CameraPos.Z);
+                Planet.Position = new Vector2f(vector.X * 1 / vector.Z, vector.Y * 1 / vector.Z);
+                Planet.Radius = radius;
+                Planet.FillColor = planet.color;
                 window.Draw(Planet);
             }
-        }
-        Vector2f Norm(Vector3f cam, Vector2f vector2)
-        {
-        
         }
         private void Window_MouseMoved(object? sender, MouseMoveEventArgs e)
         {
@@ -84,7 +83,7 @@ namespace celestial_mechanics
             Vector2f vector = MousePos - MousePresPos;
             if (CameraPosChange)
             {
-                Console.WriteLine($"{CameraPos.X} {CameraPos.Y}");
+                CameraPos += new Vector3f((-vector.X) * 0.01f, (-vector.Y) * 0.01f, 0);
             }
             if (drawGhost)
             {
@@ -92,7 +91,7 @@ namespace celestial_mechanics
                 GhostPlanet.Radius = GhostRadius;
                 GhostPlanet.OutlineThickness = -GhostRadius / 8;
                 GhostPlanet.Position = MousePresPos - new Vector2f(GhostRadius, GhostRadius);
-                GhostPlanet.FillColor = new Color(100, 100, 250);
+                GhostPlanet.FillColor = new Color(100, 100, 250, 100);
             }
         }
 
@@ -101,12 +100,20 @@ namespace celestial_mechanics
             switch (e.Wheel)
             {
                 case Mouse.Wheel.VerticalWheel:
-                    scale += e.Delta;
-                    break;
-                case Mouse.Wheel.HorizontalWheel:
-                    scale -= e.Delta;
-                    break;
-                default:
+                    if (e.Delta < 0)
+                    {
+                        CameraPos.Z--;
+                        CameraPos.X -= Width / 2;
+                        CameraPos.Y -= Height / 2;
+                    }
+                    else
+                    {
+                        if (CameraPos.Z == -1)
+                            return;
+                        CameraPos.Z++;
+                        CameraPos.X += Width / 2;
+                        CameraPos.Y += Height / 2;
+                    }
                     break;
             }
         }
@@ -120,6 +127,8 @@ namespace celestial_mechanics
             {
                 case Mouse.Button.Left:
                     drawGhost = false;
+                    var random = new Random();
+                    PlanetList.Add(new Planet() { radius = GhostRadius * Math.Abs(CameraPos.Z), posGlobal = GhostPlanet.Position * Math.Abs(CameraPos.Z) + new Vector2f(CameraPos.X, CameraPos.Y), color = new Color((byte)random.Next(256), (byte)random.Next(256), (byte)random.Next(256)) });
                     break;
                 case Mouse.Button.Right:
 
@@ -140,7 +149,7 @@ namespace celestial_mechanics
                     GhostPlanet.Position = MousePresPos;
                     GhostPlanet.Radius = 0;
                     GhostPlanet.OutlineThickness = 0;
-                    GhostPlanet.OutlineColor = new Color(50, 50, 250);
+                    GhostPlanet.OutlineColor = new Color(50, 50, 250, 100);
                     break;
                 case Mouse.Button.Right:
                     break;
@@ -373,9 +382,10 @@ namespace celestial_mechanics
 
     internal class Planet
     {
-        public float radius=1;
+        public float radius = 1;
         private double mass;
         private double density;
         public Vector2f posGlobal = new Vector2f();
+        public Color color;
     }
 }
