@@ -1,6 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace celestial_mechanics
@@ -28,6 +29,7 @@ namespace celestial_mechanics
         private CircleShape Planet;
         private bool CameraPosChange;
         private List<Planet> PlanetList;
+        float Density = 1f;
         public World(VideoMode mode, string title) : base(mode, title, Styles.Close)
         {
             window = this;
@@ -50,8 +52,11 @@ namespace celestial_mechanics
             window.MouseLeft += Window_MouseLeft;
             window.MouseWheelScrolled += Window_MouseWheelScrolled;
             window.MouseMoved += Window_MouseMoved;
+            double estimatedTime = 0;
             while (window.IsOpen)
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
                 window.DispatchEvents();
                 window.Clear();
                 DrawPlanets();
@@ -60,9 +65,37 @@ namespace celestial_mechanics
                     window.Draw(GhostPlanet);
                 }
                 window.Display();
+                Simulation(estimatedTime);
+                stopwatch.Stop();
+                estimatedTime = stopwatch.Elapsed.TotalNanoseconds;
             }
         }
 
+        private void Simulation(double timeN)
+        {
+            for (int i = 0; i < PlanetList.Count; i++)
+            {
+                Planet planet1 = PlanetList[i];
+                planet1.acceleration = new Vector2f(2f,0f);
+                for (int j = 0; j < PlanetList.Count; j++)
+                {
+                    if (i == j)
+                        continue;
+                    Planet planet2 = PlanetList[j];
+                    float distance = Distance(planet1, planet2);
+                    float Aot = planet2.mass / (distance * distance);
+                    planet1.acceleration += new Vector2f(Aot * ((planet2.posGlobal.X-planet1.posGlobal.X)/distance),Aot * ((planet2.posGlobal.Y - planet1.posGlobal.Y) / distance));
+                }
+                planet1.Speed += planet1.acceleration * (float)timeN/1000000000;
+                planet1.posGlobal += planet1.Speed * (float)timeN / 1000000000;
+            }
+        }
+
+        private float Distance(Planet planet1, Planet planet2)
+        {
+            Vector2f vector = planet2.posGlobal - planet1.posGlobal;
+            return (float)Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
+        }
         private void DrawPlanets()
         {
             for (int i = 0; i < PlanetList.Count; i++)
@@ -128,7 +161,7 @@ namespace celestial_mechanics
                 case Mouse.Button.Left:
                     drawGhost = false;
                     var random = new Random();
-                    PlanetList.Add(new Planet() { radius = GhostRadius * Math.Abs(CameraPos.Z), posGlobal = GhostPlanet.Position * Math.Abs(CameraPos.Z) + new Vector2f(CameraPos.X, CameraPos.Y), color = new Color((byte)random.Next(256), (byte)random.Next(256), (byte)random.Next(256)) });
+                    PlanetList.Add(new Planet(GhostRadius * Math.Abs(CameraPos.Z), GhostPlanet.Position * Math.Abs(CameraPos.Z) + new Vector2f(CameraPos.X, CameraPos.Y), new Color((byte)random.Next(256), (byte)random.Next(256), (byte)random.Next(256)), Density));
                     break;
                 case Mouse.Button.Right:
 
@@ -168,213 +201,35 @@ namespace celestial_mechanics
         {
             switch (e.Code)
             {
-                case Keyboard.Key.Unknown:
-                    break;
-                case Keyboard.Key.A:
-                    break;
-                case Keyboard.Key.B:
-                    break;
-                case Keyboard.Key.C:
-                    break;
-                case Keyboard.Key.D:
-                    break;
-                case Keyboard.Key.E:
-                    break;
-                case Keyboard.Key.F:
-                    break;
-                case Keyboard.Key.G:
-                    break;
-                case Keyboard.Key.H:
-                    break;
-                case Keyboard.Key.I:
-                    break;
-                case Keyboard.Key.J:
-                    break;
-                case Keyboard.Key.K:
-                    break;
-                case Keyboard.Key.L:
-                    break;
-                case Keyboard.Key.M:
-                    break;
-                case Keyboard.Key.N:
-                    break;
-                case Keyboard.Key.O:
-                    break;
-                case Keyboard.Key.P:
-                    break;
-                case Keyboard.Key.Q:
-                    break;
-                case Keyboard.Key.R:
-                    break;
-                case Keyboard.Key.S:
-                    break;
-                case Keyboard.Key.T:
-                    break;
-                case Keyboard.Key.U:
-                    break;
-                case Keyboard.Key.V:
-                    break;
-                case Keyboard.Key.W:
-                    break;
-                case Keyboard.Key.X:
-                    break;
-                case Keyboard.Key.Y:
-                    break;
-                case Keyboard.Key.Z:
-                    break;
-                case Keyboard.Key.Num0:
-                    break;
                 case Keyboard.Key.Num1:
+                    Density = 1;
                     break;
                 case Keyboard.Key.Num2:
+                    Density = 2;
                     break;
                 case Keyboard.Key.Num3:
+                    Density = 5;
                     break;
                 case Keyboard.Key.Num4:
+                    Density = 10;
                     break;
                 case Keyboard.Key.Num5:
+                    Density = 50;
                     break;
                 case Keyboard.Key.Num6:
+                    Density = 100;
                     break;
                 case Keyboard.Key.Num7:
+                    Density = 500;
                     break;
                 case Keyboard.Key.Num8:
+                    Density = 1000;
                     break;
                 case Keyboard.Key.Num9:
+                    Density = 100000;
                     break;
                 case Keyboard.Key.Escape:
-                    break;
-                case Keyboard.Key.LControl:
-                    break;
-                case Keyboard.Key.LShift:
-                    break;
-                case Keyboard.Key.LAlt:
-                    break;
-                case Keyboard.Key.LSystem:
-                    break;
-                case Keyboard.Key.RControl:
-                    break;
-                case Keyboard.Key.RShift:
-                    break;
-                case Keyboard.Key.RAlt:
-                    break;
-                case Keyboard.Key.RSystem:
-                    break;
-                case Keyboard.Key.Menu:
-                    break;
-                case Keyboard.Key.LBracket:
-                    break;
-                case Keyboard.Key.RBracket:
-                    break;
-                case Keyboard.Key.Semicolon:
-                    break;
-                case Keyboard.Key.Comma:
-                    break;
-                case Keyboard.Key.Period:
-                    break;
-                case Keyboard.Key.Quote:
-                    break;
-                case Keyboard.Key.Slash:
-                    break;
-                case Keyboard.Key.Backslash:
-                    break;
-                case Keyboard.Key.Tilde:
-                    break;
-                case Keyboard.Key.Equal:
-                    break;
-                case Keyboard.Key.Hyphen:
-                    break;
-                case Keyboard.Key.Space:
-                    break;
-                case Keyboard.Key.Enter:
-                    break;
-                case Keyboard.Key.Backspace:
-                    break;
-                case Keyboard.Key.Tab:
-                    break;
-                case Keyboard.Key.PageUp:
-                    break;
-                case Keyboard.Key.PageDown:
-                    break;
-                case Keyboard.Key.End:
-                    break;
-                case Keyboard.Key.Home:
-                    break;
-                case Keyboard.Key.Insert:
-                    break;
-                case Keyboard.Key.Delete:
-                    break;
-                case Keyboard.Key.Add:
-                    break;
-                case Keyboard.Key.Subtract:
-                    break;
-                case Keyboard.Key.Multiply:
-                    break;
-                case Keyboard.Key.Divide:
-                    break;
-                case Keyboard.Key.Left:
-                    break;
-                case Keyboard.Key.Right:
-                    break;
-                case Keyboard.Key.Up:
-                    break;
-                case Keyboard.Key.Down:
-                    break;
-                case Keyboard.Key.Numpad0:
-                    break;
-                case Keyboard.Key.Numpad1:
-                    break;
-                case Keyboard.Key.Numpad2:
-                    break;
-                case Keyboard.Key.Numpad3:
-                    break;
-                case Keyboard.Key.Numpad4:
-                    break;
-                case Keyboard.Key.Numpad5:
-                    break;
-                case Keyboard.Key.Numpad6:
-                    break;
-                case Keyboard.Key.Numpad7:
-                    break;
-                case Keyboard.Key.Numpad8:
-                    break;
-                case Keyboard.Key.Numpad9:
-                    break;
-                case Keyboard.Key.F1:
-                    break;
-                case Keyboard.Key.F2:
-                    break;
-                case Keyboard.Key.F3:
-                    break;
-                case Keyboard.Key.F4:
-                    break;
-                case Keyboard.Key.F5:
-                    break;
-                case Keyboard.Key.F6:
-                    break;
-                case Keyboard.Key.F7:
-                    break;
-                case Keyboard.Key.F8:
-                    break;
-                case Keyboard.Key.F9:
-                    break;
-                case Keyboard.Key.F10:
-                    break;
-                case Keyboard.Key.F11:
-                    break;
-                case Keyboard.Key.F12:
-                    break;
-                case Keyboard.Key.F13:
-                    break;
-                case Keyboard.Key.F14:
-                    break;
-                case Keyboard.Key.F15:
-                    break;
-                case Keyboard.Key.Pause:
-                    break;
-                case Keyboard.Key.KeyCount:
-                    break;
-                default:
+                    window.Close();
                     break;
             }
         }
@@ -382,10 +237,21 @@ namespace celestial_mechanics
 
     internal class Planet
     {
-        public float radius = 1;
-        private double mass;
-        private double density;
-        public Vector2f posGlobal = new Vector2f();
-        public Color color;
+        public Vector2f Speed { get; set; }
+        public Vector2f acceleration { get; set; }
+        public float radius { get; private set; }
+        public float mass { get; private set; }
+        public float density { get; private set; }
+        public Vector2f posGlobal { get; set; }
+        public Color color { get; private set; }
+        public Planet(float _radius, Vector2f _posGlobal, Color _color, float _density)
+        {
+            radius = _radius;
+            posGlobal = _posGlobal;
+            color = _color;
+            density = _density;
+            mass = (4f / 3f) * (float)Math.PI * radius * radius * radius * density;
+            Console.WriteLine(mass);
+        }
     }
 }
