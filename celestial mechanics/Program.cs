@@ -1,4 +1,5 @@
 ﻿using SFML.Graphics;
+using SFML.Graphics.Glsl;
 using SFML.System;
 using SFML.Window;
 using System.Diagnostics;
@@ -29,7 +30,7 @@ namespace celestial_mechanics
         private CircleShape Planet;
         private bool CameraPosChange;
         private List<Planet> PlanetList;
-        float Density = 1f;
+        private float Density = 1f;
         public World(VideoMode mode, string title) : base(mode, title, Styles.Close)
         {
             window = this;
@@ -76,7 +77,7 @@ namespace celestial_mechanics
             for (int i = 0; i < PlanetList.Count; i++)
             {
                 Planet planet1 = PlanetList[i];
-                planet1.acceleration = new Vector2f(2f,0f);
+                planet1.acceleration = new Vector2f(100 / planet1.density, 0f);
                 for (int j = 0; j < PlanetList.Count; j++)
                 {
                     if (i == j)
@@ -84,13 +85,26 @@ namespace celestial_mechanics
                     Planet planet2 = PlanetList[j];
                     float distance = Distance(planet1, planet2);
                     float Aot = planet2.mass / (distance * distance);
-                    planet1.acceleration += new Vector2f(Aot * ((planet2.posGlobal.X-planet1.posGlobal.X)/distance),Aot * ((planet2.posGlobal.Y - planet1.posGlobal.Y) / distance));
+                    if (CirclevsCircleOptimized(planet1, planet2))
+                    {
+                        planet1.acceleration -= new Vector2f(Aot * ((planet2.posGlobal.X - planet1.posGlobal.X) / distance), Aot * ((planet2.posGlobal.Y - planet1.posGlobal.Y) / distance));
+                    }
+                    else
+                    {
+                        planet1.acceleration += new Vector2f(Aot * ((planet2.posGlobal.X - planet1.posGlobal.X) / distance), Aot * ((planet2.posGlobal.Y - planet1.posGlobal.Y) / distance));
+                    }
                 }
-                planet1.Speed += planet1.acceleration * (float)timeN/1000000000;
+                planet1.Speed += planet1.acceleration * (float)timeN / 1000000000;
                 planet1.posGlobal += planet1.Speed * (float)timeN / 1000000000;
             }
         }
-
+        private bool CirclevsCircleOptimized(Planet a, Planet b)
+        {
+            Vector2f v = b.posGlobal - a.posGlobal;
+            float r = a.radius + b.radius;
+            r *= r;
+            return r > v.X * v.X + v.Y * v.Y;
+        }
         private float Distance(Planet planet1, Planet planet2)
         {
             Vector2f vector = planet2.posGlobal - planet1.posGlobal;
@@ -103,7 +117,7 @@ namespace celestial_mechanics
                 Planet planet = PlanetList[i];
                 Vector3f vector = new Vector3f(planet.posGlobal.X, planet.posGlobal.Y, 0) - CameraPos;
                 float radius = planet.radius / Math.Abs(CameraPos.Z);
-                Planet.Position = new Vector2f(vector.X * 1 / vector.Z, vector.Y * 1 / vector.Z);
+                Planet.Position = new Vector2f(vector.X * 1 / vector.Z, vector.Y * 1 / vector.Z) - new Vector2f(radius, radius);
                 Planet.Radius = radius;
                 Planet.FillColor = planet.color;
                 window.Draw(Planet);
@@ -161,7 +175,7 @@ namespace celestial_mechanics
                 case Mouse.Button.Left:
                     drawGhost = false;
                     var random = new Random();
-                    PlanetList.Add(new Planet(GhostRadius * Math.Abs(CameraPos.Z), GhostPlanet.Position * Math.Abs(CameraPos.Z) + new Vector2f(CameraPos.X, CameraPos.Y), new Color((byte)random.Next(256), (byte)random.Next(256), (byte)random.Next(256)), Density));
+                    PlanetList.Add(new Planet(GhostRadius * Math.Abs(CameraPos.Z), GhostPlanet.Position * Math.Abs(CameraPos.Z) + new Vector2f(CameraPos.X, CameraPos.Y) + new Vector2f(GhostRadius, GhostRadius), new Color((byte)random.Next(256), (byte)random.Next(256), (byte)random.Next(256)), Density));
                     break;
                 case Mouse.Button.Right:
 
