@@ -31,6 +31,8 @@ namespace celestial_mechanics
         private bool CameraPosChange;
         private List<Planet> PlanetList;
         private float Density = 1f;
+        private float speed_time_baby = 1;
+
         public World(VideoMode mode, string title) : base(mode, title, Styles.Close)
         {
             window = this;
@@ -77,7 +79,7 @@ namespace celestial_mechanics
             for (int i = 0; i < PlanetList.Count; i++)
             {
                 Planet planet1 = PlanetList[i];
-                planet1.acceleration = new Vector2f(100 / planet1.density, 0f);
+                planet1.acceleration = new Vector2f(0f, 0f);
                 for (int j = 0; j < PlanetList.Count; j++)
                 {
                     if (i == j)
@@ -94,8 +96,8 @@ namespace celestial_mechanics
                         planet1.acceleration += new Vector2f(Aot * ((planet2.posGlobal.X - planet1.posGlobal.X) / distance), Aot * ((planet2.posGlobal.Y - planet1.posGlobal.Y) / distance));
                     }
                 }
-                planet1.Speed += planet1.acceleration * (float)timeN / 1000000000;
-                planet1.posGlobal += planet1.Speed * (float)timeN / 1000000000;
+                planet1.Speed += planet1.acceleration * (float)timeN / 1000000000 * speed_time_baby;
+                planet1.posGlobal += planet1.Speed * (float)timeN / 1000000000 * speed_time_baby;
             }
         }
         private bool CirclevsCircleOptimized(Planet a, Planet b)
@@ -245,6 +247,24 @@ namespace celestial_mechanics
                 case Keyboard.Key.Escape:
                     window.Close();
                     break;
+                case Keyboard.Key.Left:
+                    if (speed_time_baby <= 1)
+                    {
+                        speed_time_baby -= 0.1f;
+                        if (speed_time_baby <=0 )
+                        {
+                            speed_time_baby = 0f;
+                        }
+                    }
+                    else
+                        speed_time_baby--;
+                    break;
+                case Keyboard.Key.Right:
+                    if (speed_time_baby <= 1)
+                        speed_time_baby += 0.1f;
+                    else
+                        speed_time_baby++;
+                    break;
             }
         }
     }
@@ -260,11 +280,13 @@ namespace celestial_mechanics
         public Color color { get; private set; }
         public Planet(float _radius, Vector2f _posGlobal, Color _color, float _density)
         {
+            
             radius = _radius;
             posGlobal = _posGlobal;
             color = _color;
             density = _density;
             mass = (4f / 3f) * (float)Math.PI * radius * radius * radius * density;
+            Speed = new Vector2f(0, 10000000/mass/density);
             Console.WriteLine(mass);
         }
     }
